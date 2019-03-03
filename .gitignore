@@ -12,7 +12,8 @@
 
 # Package Files #
 *.jar
-!gradle/wrapper/gradle-wrapper.jar
+!proxy/gradle/wrapper/gradle-wrapper.jar
+!preferences/gradle/wrapper/gradle-wrapper.jar
 *.war
 *.nar
 *.ear
