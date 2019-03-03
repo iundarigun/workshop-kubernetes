@@ -1,7 +1,11 @@
-# Getting Started
+# API
 
-### Guides
-The following guides illustrates how to use certain features concretely:
+### Endpoints
 
-* [Building a RESTful Web Service with Spring Boot Actuator](https://spring.io/guides/gs/actuator-service/)
+Documentation about API Ice and Fire: [https://anapioficeandfire.com/Documentation](https://anapioficeandfire.com/Documentation)
 
+# Docker
+How to generate image. Go to the proxy base path:
+```
+> docker build -t <user/registry>/proxy:<version> .
+```

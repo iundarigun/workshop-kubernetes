@@ -7,7 +7,8 @@ apply plugin: 'io.spring.dependency-management'
 
 group = 'br.com.devcave.workshop.kubernetes'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '1.8'
+sourceCompatibility = '1.11'
+targetCompatibility = 1.11
 
 configurations {
 	compileOnly {
@@ -22,16 +23,27 @@ repositories {
 
 ext {
 	set('springCloudVersion', 'Greenwich.RELEASE')
+	set('swaggerVersion', '2.9.2')
+	set('mapstructVersion', '1.2.0.Final')
 }
 
 dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+	implementation "io.springfox:springfox-swagger2:${swaggerVersion}"
+	implementation "io.springfox:springfox-swagger-ui:${swaggerVersion}"
+
+	compile "org.mapstruct:mapstruct-jdk8:${mapstructVersion}"
+	compile "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+
 	compileOnly 'org.projectlombok:lombok'
+
 	runtimeOnly 'mysql:mysql-connector-java'
+
 	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
 }
 
 dependencyManagement {

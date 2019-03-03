@@ -29,10 +29,25 @@ class IceAndFireServiceImpl implements IceAndFireService {
 
         List<CharacterResponse> characterList = book.getPovCharacters()
                 .stream()
-                .map(c ->  iceAndFireClient.getCharacter(getIdFromUrl(c)))
+                .map(c -> iceAndFireClient.getCharacter(getIdFromUrl(c)))
                 .collect(Collectors.toList());
 
         return bookMapper.toBookInternalResponse(book, toCharacterInternalResponseList(characterList));
+    }
+
+    @Override
+    public CharacterInternalResponse getCharacter(Long id) {
+        CharacterResponse characterResponse = iceAndFireClient.getCharacter(id);
+
+        CharacterInternalResponse characterInternalResponse = characterMapper.toCharacterInternalResponse(characterResponse);
+
+        characterInternalResponse.setHouseList(
+                characterResponse.getAllegiances()
+                        .stream()
+                        .map(a -> iceAndFireClient.getHouse(getIdFromUrl(a)))
+                        .collect(Collectors.toList()));
+
+        return characterInternalResponse;
     }
 
     private List<CharacterInternalResponse> toCharacterInternalResponseList(
@@ -43,7 +58,7 @@ class IceAndFireServiceImpl implements IceAndFireService {
                             CharacterInternalResponse characterInternalResponse = characterMapper.toCharacterInternalResponse(c);
                             characterInternalResponse.setHouseList(c.getAllegiances()
                                     .stream()
-                                    .map(a-> iceAndFireClient.getHouse(getIdFromUrl(a)))
+                                    .map(a -> iceAndFireClient.getHouse(getIdFromUrl(a)))
                                     .collect(Collectors.toList()));
                             return characterInternalResponse;
                         }
