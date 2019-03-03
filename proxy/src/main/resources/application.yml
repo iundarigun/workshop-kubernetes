@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: proxy
+
+server:
+  port: 9000
+
+url:
+  ice-and-fire: https://anapioficeandfire.com/api
