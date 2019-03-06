@@ -1,6 +1,6 @@
 # Jenkins
 
-Run jenkins in docker (create foldcer `~/tmp/jenkins_home` before):
+Run jenkins in docker (create folder `~/tmp/jenkins_home` before):
 ```
 $ docker run -v ~/tmp/jenkins_home:/var/jenkins_home -p 8080:8080 -p 50000:50000 --name local-jenkins jenkins/jenkins:lts
 ```
@@ -30,6 +30,7 @@ node {
     }
 }
 ```
+## Java 11
 We take an error envolving java version. To fix this, we go to install java 11 into the docker container.
 ```
 $ docker exec -it --user root local-jenkins bash
@@ -38,6 +39,8 @@ $ docker exec -it --user root local-jenkins bash
 # unlink /docker-java-home
 # ln -s /usr/lib/jvm/jdk-11.0.2 /docker-java-home
 ```
+
+## Docker
 
 We take another error. No docker found, so we go to install docker in the container:
 ```
