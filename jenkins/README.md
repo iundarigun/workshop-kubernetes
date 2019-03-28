@@ -65,9 +65,10 @@ If we run the build again, we have a new error: `Cannot connect to the Docker da
 To fix this, is a litle bit complicate. We need to share the local daemon with the container.
 ```
 $ docker rm local-jenkins
-$ run -v ~/tmp/jenkins_home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock -p 8080:8080 -p 50000:50000 --name local-jenkins jenkins/jenkins:lts
+$ docker run -v ~/tmp/jenkins_home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock -p 8080:8080 -p 50000:50000 --name local-jenkins jenkins/jenkins:lts
 ```
-Now, we need to install docker and java, again.
+Now, we need to install docker and java, again. 
+- if you don't want to do all again, you can just jump to **Custom image** topic 
 
 Running again, we take a new error: `Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Post http://%2Fvar%2Frun%2Fdocker.sock/v1.39/auth: dial unix /var/run/docker.sock: connect: permission denied`
 
@@ -76,8 +77,20 @@ This is simple, only needs add jenkins to docker group:
 $ docker exec -it --user root local-jenkins bash
 # usermod -aG docker jenkins
 ```
+After this, restart the jenkins' container and rerun the pipeline! 
 
-### References
-https://github.com/jenkinsci/docker/blob/master/README.md
-https://medium.com/@gustavo.guss/jenkins-building-docker-image-and-sending-to-registry-64b84ea45ee9
-https://github.com/iundarigun/workshop-kubernetes/blob/master/README.md
+## Custom image
+
+To run a custom image with docker and java 11 we can run the next instruction:
+```
+$ docker run -v ~/tmp/jenkins_home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock -p 8080:8080 -p 50000:50000 --name local-jenkins iundarigun/jenkins-java11-docker
+```
+
+The Dockerfile to build the image is in this folder. 
+- https://github.com/iundarigun/workshop-kubernetes/blob/master/jenkins/Dockerfile 
+
+
+## References
+- https://github.com/jenkinsci/docker/blob/master/README.md
+- https://medium.com/@gustavo.guss/jenkins-building-docker-image-and-sending-to-registry-64b84ea45ee9
+- https://github.com/iundarigun/workshop-kubernetes/blob/master/README.md

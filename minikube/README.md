@@ -38,6 +38,17 @@ To run minikube, only need to run `minikube start` to start a default minikube. 
 $ minikube start -p mini-dockerhub
 ```
 
+## Kubectl
+Kubectl is the instruction to interact with kubernates cluster, like minikube.
+
+```
+$ kubectl cluster-info
+$ kubectl get nodes
+``` 
+
+
+
+
 ## References
 - Official doc: https://kubernetes.io/docs/tasks/tools/install-minikube/
 - VirtualBox site: https://www.virtualbox.org/wiki/Linux_Downloads
