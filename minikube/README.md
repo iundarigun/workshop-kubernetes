@@ -46,7 +46,31 @@ $ kubectl cluster-info
 $ kubectl get nodes
 ``` 
 
+## Minikube with local registry
+To start minikube using local (insecure) registry, we need to explicit with the right params: 
+```
+$ minikube start -p mini-localhub --insecure-registry local-registry:5000
+```
 
+Dashboard:
+```
+$ minikube -p mini-localhub dashboard
+```
+
+To access the bash in minikube:
+```
+$ minikube -p mini-localhub ssh
+# systemctl status docker
+```
+
+## kubectl ##
+
+Create _secret_ to login in the local registry:
+```
+$ kubectl create secret docker-registry local-registry --docker-server=local-registry:5000 --docker-username=username --docker-password=password --docker-email=usermail@domain.com
+```
+
+minikube -p 99taxis service servicename --url
 
 
 ## References
