@@ -70,8 +70,9 @@ Create _secret_ to login in the local registry:
 $ kubectl create secret docker-registry local-registry --docker-server=local-registry:5000 --docker-username=username --docker-password=password --docker-email=usermail@domain.com
 ```
 
-minikube -p 99taxis service servicename --url
-
+```
+minikube -p mini-localhub service servicename --url
+```
 
 ## References
 - Official doc: https://kubernetes.io/docs/tasks/tools/install-minikube/
