@@ -6,7 +6,6 @@ plugins {
 apply plugin: 'io.spring.dependency-management'
 
 group = 'br.com.devcave.workshop.kubernetes'
-version = '0.0.1-SNAPSHOT'
 
 sourceCompatibility = 1.11
 targetCompatibility = 1.11
@@ -47,5 +46,34 @@ dependencies {
 dependencyManagement {
 	imports {
 		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}
+
+task patchVersion {
+	doLast{
+		Properties props = new Properties()
+		File propsFile = new File('gradle.properties')
+		props.load(propsFile.newDataInputStream())
+		def stable_project_version = props.getProperty('version') as String
+		def (major, minor, patch) = stable_project_version.tokenize('.')
+		if ("patch" == typeVersion) {
+			patch = patch.toInteger() + 1
+		} else if ("minor" == typeVersion) {
+			patch = 0
+			minor = minor.toInteger() + 1
+		} else if ("major" == typeVersion) {
+			patch = 0
+			minor = 0
+			major = major.toInteger() + 1
+		} else {
+			final String msg = "Invalid 'typeVersion'. typeVersion=" typeVersion + " and must be patch, minor or major"
+
+			println msg
+
+			throw new IllegalArgumentException(msg)
+		}
+		String snapshot_project_version = major + '.' + minor + '.' + patch
+		props.setProperty('version', snapshot_project_version)
+		props.store(propsFile.newWriter(), null)
 	}
 }
