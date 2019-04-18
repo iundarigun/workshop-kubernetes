@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: helloworld
+  labels:
+    app: helloworld
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 2012
+      name: helloworld
+  selector:
+    app: helloworld
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helloworld
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: helloworld
+  template:
+    metadata:
+      labels:
+        app: helloworld
+    spec:
+      containers:
+        - name: helloworld
+          image: iundarigun/helloworld
+          ports:
+            - containerPort: 2012

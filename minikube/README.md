@@ -48,12 +48,12 @@ $ kubectl get nodes
 
 Dashboard:
 ```
-$ minikube -p mini-localhub dashboard
+$ minikube -p mini-dockerhub dashboard
 ```
 
 To access the bash in minikube:
 ```
-$ minikube -p mini-localhub ssh
+$ minikube -p mini-dockerhub ssh
 # systemctl status docker
 ```
 
@@ -73,7 +73,7 @@ spec:
 
 To deploy this pod, we run the next instruction:
 ```
-$ kubectl apply -f helloworld.yaml
+$ kubectl apply -f k8sfiles/helloworld.yaml
 ```
 
 To see logs:
@@ -86,7 +86,50 @@ The pod don't recovery alone, it need a wrapper to care about. This is the Deplo
 $ kubectl delete pod <pod_name>
 ```
 
-=> Deployment.
+If we want autorecovery when pod dead, we can declare pod as deployment:
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helloworld
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: helloworld
+  template:
+    metadata:
+      labels:
+        app: helloworld
+    spec:
+      containers:
+        - name: helloworld
+          image: iundarigun/helloworld
+          ports:
+            - containerPort: 2012
+```
+Exists an other mode like *Deployment*, **statefulSet**. We declare it like a deployment, but when deplyoment is lightweight and used for stateless app, statefulSet is used when state has to be persisted.
+
+For now, we can not access to this container, because we don't "publish" it. We need a service:
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: helloworld
+  labels:
+    app: helloworld
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 2012
+      name: helloworld
+  selector:
+    app: helloworld
+```
+To get the url:
+```
+minikube -p mini-dokcerhub service servicename --url
+```
 
 ## Minikube with local registry
 
