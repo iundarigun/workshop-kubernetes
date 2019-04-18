@@ -27,5 +27,5 @@ How to generate image. Go to the preferences base path:
 
 ### Changing a url to run in docker
 ```
-> docker run -p 9009:9009 -e "SPRING_DATASOURCE_URL=jdbc:mysql://<URL or IP>:3306/preferences?useSSL=false&allowPublicKeyRetrieval=true" <user/registry>/preferences:<version>
+> docker run -p 9009:9009 -e "SPRING_DATASOURCE_URL=jdbc:mysql://<URL or IP>:3306/preferences?useSSL=false&allowPublicKeyRetrieval=true" -e URL_PROXY=http://<URL>:9000 <user/registry>/preferences:<version>
 ```

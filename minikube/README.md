@@ -46,12 +46,6 @@ $ kubectl cluster-info
 $ kubectl get nodes
 ``` 
 
-## Minikube with local registry
-To start minikube using local (insecure) registry, we need to explicit with the right params: 
-```
-$ minikube start -p mini-localhub --insecure-registry local-registry:5000
-```
-
 Dashboard:
 ```
 $ minikube -p mini-localhub dashboard
@@ -63,16 +57,66 @@ $ minikube -p mini-localhub ssh
 # systemctl status docker
 ```
 
-## kubectl ##
+We can deploy an application by yaml files. The next file is a deploy pod descriptor:
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: helloworld
+spec:
+  containers:
+    - name: helloworld
+      image: iundarigun/helloworld
+      ports:
+        - containerPort: 2012
+```
+
+To deploy this pod, we run the next instruction:
+```
+$ kubectl apply -f helloworld.yaml
+```
+
+To see logs:
+```
+$ kubectl logs -f --tail=20 <pod_name>
+```
+
+The pod don't recovery alone, it need a wrapper to care about. This is the Deployment.
+```
+$ kubectl delete pod <pod_name>
+```
+
+=> Deployment.
+
+## Minikube with local registry
+
+=> deployment from local-registry
+
+To start minikube using local (insecure) registry, we need to explicit with the right params: 
+```
+$ minikube start -p mini-localhub --insecure-registry local-registry:5000 --memory 4096
+```
+
+=> deployemnt from local-registry
 
 Create _secret_ to login in the local registry:
 ```
 $ kubectl create secret docker-registry local-registry --docker-server=local-registry:5000 --docker-username=username --docker-password=password --docker-email=usermail@domain.com
 ```
 
+=> Service from local-registry
+
+=> get URL
+
 ```
 minikube -p mini-localhub service servicename --url
 ```
+
+=> blue/green deploy
+
+=> connecting apps
+
+=> open ports to connect for other host
 
 ## References
 - Official doc: https://kubernetes.io/docs/tasks/tools/install-minikube/
