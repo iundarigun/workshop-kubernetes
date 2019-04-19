@@ -133,21 +133,129 @@ minikube -p mini-dokcerhub service servicename --url
 
 ## Minikube with local registry
 
-=> deployment from local-registry
+Our goal is deploy `proxy` and `preferences` aplications. So, we try to deploy this yaml:
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: proxy
+  template:
+    metadata:
+      labels:
+        app: proxy
+    spec:
+      containers:
+        - name: proxy
+          image: local-registry:5000/proxy:0.0.1
+          ports:
+            - containerPort: 9000
+```
+
+The pod can not start:
+```
+$ kubectl get pods
+NAME                          READY   STATUS         RESTARTS   AGE
+helloworld-795ddd8bb8-fcksz   1/1     Running        1          32h
+proxy-bf5494fcf-xl4ds         0/1     ErrImagePull   0          43s
+```
+Kubernetes can not pull the image. To more information, we can access ssh minkube and try to pull the container.
+
+```
+$ minikube -p mini-dockerhub ssh
+                         _             _            
+            _         _ ( )           ( )           
+  ___ ___  (_)  ___  (_)| |/')  _   _ | |_      __  
+/' _ ` _ `\| |/' _ `\| || , <  ( ) ( )| '_`\  /'__`\
+| ( ) ( ) || || ( ) || || |\`\ | (_) || |_) )(  ___/
+(_) (_) (_)(_)(_) (_)(_)(_) (_)`\___/'(_,__/'`\____)
+
+> docker pull local-reigstry:5000/proxy:0.0.1 
+Error response from daemon: Get https://local-reigstry:5000/v2/: dial tcp: lookup local-reigstry on 10.0.2.3:53: no such host
+```
+It is trying to pull from https. We need insecure-registry for ouu cluster.
 
 To start minikube using local (insecure) registry, we need to explicit with the right params: 
 ```
-$ minikube start -p mini-localhub --insecure-registry local-registry:5000 --memory 4096
+$ minikube start -p mini-localregistry --insecure-registry local-registry:5000 --memory 4096
+```
+Now, if we try to deploy, the image can not be pulled again. Go again to ssh:
+```
+$ minikube -p mini-localregistry ssh
+                         _             _            
+            _         _ ( )           ( )           
+  ___ ___  (_)  ___  (_)| |/')  _   _ | |_      __  
+/' _ ` _ `\| |/' _ `\| || , <  ( ) ( )| '_`\  /'__`\
+| ( ) ( ) || || ( ) || || |\`\ | (_) || |_) )(  ___/
+(_) (_) (_)(_)(_) (_)(_)(_) (_)`\___/'(_,__/'`\____)
+
+> docker pull local-registry:5000/proxy:0.0.1
+Error response from daemon: Get http://local-registry:5000/v2/proxy/manifests/0.0.1: no basic auth credentials
+```
+Ok, now the problem changes. We need to say to kubernetes the user/pass to pull image from this registry. We will create a `secret` to login in the local registry:
+```
+$ kubectl create secret docker-registry local-registry --docker-server=local-registry:5000 --docker-username=username --docker-password=password
 ```
 
-=> deployemnt from local-registry
-
-Create _secret_ to login in the local registry:
+We put on the yaml file, on `spec` section, the key `imagePullSecrets` and especify the name. The yaml file looks like this:
 ```
-$ kubectl create secret docker-registry local-registry --docker-server=local-registry:5000 --docker-username=username --docker-password=password --docker-email=usermail@domain.com
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: proxy
+  template:
+    metadata:
+      labels:
+        app: proxy
+    spec:
+      imagePullSecrets:
+      - name: local-registry
+      containers:
+        - name: proxy
+          image: local-registry:5000/proxy:0.0.1
+          ports:
+            - containerPort: 9000
+```  
+Nice. Next, we need to deploy the `preferences` app like a service. We want to indicate the port, só we can change a little the service description to specify the port:
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: preferences
+  labels:
+    app: preferences
+spec:
+  type: NodePort
+  ports:
+    - port: 9009
+      name: preferences
+      nodePort: 30400
+      protocol: TCP
+      targetPort: 9009
+  selector:
+    app: preferences
+```
+We go to deploy service and deployment. If we get the pods' status, we found a problem with preferences' pod.
+```
+$ kubectl get pods
+NAME                           READY   STATUS    RESTARTS   AGE
+preferences-5bb95d696b-q5szl   0/1     Error     1          33s
+proxy-77f99474c6-828bj         1/1     Running   0          9m20s
 ```
 
-=> Service from local-registry
+The problem is that the app can not connect to database. Make sense, because the database is not on localhost and we don't change this configuration.
+
+So, we can declare environment variables on yaml file:
+
 
 => get URL
 

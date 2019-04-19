@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: helloworld
+  name: proxy
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: helloworld
+      app: proxy
   template:
     metadata:
       labels:
-        app: helloworld
+        app: proxy
     spec:
       containers:
-        - name: helloworld
-          image: iundarigun/helloworld
+        - name: proxy
+          image: local-registry:5000/proxy:0.0.1
           ports:
-            - containerPort: 2012
+            - containerPort: 9000
