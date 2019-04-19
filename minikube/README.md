@@ -255,17 +255,72 @@ proxy-77f99474c6-828bj         1/1     Running   0          9m20s
 The problem is that the app can not connect to database. Make sense, because the database is not on localhost and we don't change this configuration.
 
 So, we can declare environment variables on yaml file:
-
-
-=> get URL
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: preferences
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: preferences
+  template:
+    metadata:
+      labels:
+        app: preferences
+    spec:
+      imagePullSecrets:
+      - name: local-registry
+      containers:
+        - name: preferences
+          image: local-registry:5000/preferences:0.0.1
+          ports:
+            - containerPort: 9009
+          env:
+          - name: SPRING_DATASOURCE_URL
+            value: jdbc:mysql://192.168.25.2:3306/preferences?useSSL=false&allowPublicKeyRetrieval=true
+```
+Now, the pod is running. Só, go to test it. Get the url and test some endpoints.
 
 ```
-minikube -p mini-localhub service servicename --url
+minikube -p mini-localregistry service preferences --url
 ```
+It is not working like expected.
+```
+"message": "Connection refused (Connection refused) executing GET http://localhost:9000/books/2"
+```
+We need to 
+
+```
+kubectl get pod proxy-77f99474c6-828bj -o yaml | grep podIP
+```
+
+```
+    - name: URL_PROXY
+      value: http://172.17.0.8:9000
+```
+
+Ok, but, is not the better solution (for example, scaling services). We can create a service to access internally. 
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: proxy
+  labels:
+    app: proxy
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9000
+      name: proxy
+  selector:
+    app: proxy
+```
+ClusterIP type exposes the service on a cluster-internal IP. Choosing this value makes the service only reachable from within the cluster.
+
 
 => blue/green deploy
-
-=> connecting apps
 
 => open ports to connect for other host
 
