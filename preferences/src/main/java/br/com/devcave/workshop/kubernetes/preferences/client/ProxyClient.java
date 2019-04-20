@@ -14,4 +14,7 @@ public interface ProxyClient {
 
     @GetMapping("/characters/{id}")
     CharacterResponse getCharacter(@PathVariable Long id);
+
+    @GetMapping("/ping")
+    String ping();
 }
