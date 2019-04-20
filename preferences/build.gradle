@@ -79,3 +79,11 @@ task patchVersion {
 		props.store(propsFile.newWriter(), null)
 	}
 }
+
+task replaceVersion {
+	doLast{
+		def file = new File('k8s/preferences-jenkins.yaml')
+		def newConfig = file.text.replaceAll("image: (.*)preferences(.*)", 'image: $1preferences:' + projectVersion)
+		file.text = newConfig
+	}
+}
