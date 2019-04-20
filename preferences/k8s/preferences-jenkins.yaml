@@ -33,7 +33,7 @@ spec:
       - name: local-registry
       containers:
       - name: preferences
-        image: local-registry:5000/preferences:2.2.0
+        image: local-registry:5000/preferences:2.2.1
         ports:
         - containerPort: 9009
         env:
