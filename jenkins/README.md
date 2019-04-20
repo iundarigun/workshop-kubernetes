@@ -382,17 +382,17 @@ clusters:
 - cluster:
     insecure-skip-tls-verify: true
     server: https://<ip host minikub>:<port>
-  name: mini-localhub
+  name: mini-localregistry
 contexts:
 - context:
-    cluster: mini-localhub
-    user: mini-localhub
-  name: mini-localhub
-current-context: mini-localhub
+    cluster: mini-localregistry
+    user: mini-localregistry
+  name: mini-localregistry
+current-context: mini-localregistry
 kind: Config
 preferences: {}
 users:
-- name: mini-localhub
+- name: mini-localregistry
   user:
     client-certificate: /var/jenkins_home/.minikube/client.crt
     client-key: /var/jenkins_home/.minikube/client.k
