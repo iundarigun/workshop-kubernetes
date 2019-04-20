@@ -224,7 +224,10 @@ spec:
           image: local-registry:5000/proxy:0.0.1
           ports:
             - containerPort: 9000
-```  
+``` 
+
+## Comunication problems
+
 Nice. Next, we need to deploy the `preferences` app like a service. We want to indicate the port, só we can change a little the service description to specify the port:
 ```
 apiVersion: v1
@@ -244,6 +247,7 @@ spec:
   selector:
     app: preferences
 ```
+
 We go to deploy service and deployment. If we get the pods' status, we found a problem with preferences' pod.
 ```
 $ kubectl get pods
@@ -290,12 +294,13 @@ It is not working like expected.
 ```
 "message": "Connection refused (Connection refused) executing GET http://localhost:9000/books/2"
 ```
-We need to 
+
+We need to config the proxy endpoint url. The first aproach can be getting the url pod. 
 
 ```
 kubectl get pod proxy-77f99474c6-828bj -o yaml | grep podIP
 ```
-
+Then, we can used in `env` section in the yaml file:
 ```
     - name: URL_PROXY
       value: http://172.17.0.8:9000
@@ -312,17 +317,59 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - port: 9000
+    - port: 80
       name: proxy
+      targetPort: 9000
   selector:
     app: proxy
 ```
 ClusterIP type exposes the service on a cluster-internal IP. Choosing this value makes the service only reachable from within the cluster.
+```
+    - name: URL_PROXY
+      value: http://proxy
+```
 
+## How to deploy a new version
 
-=> blue/green deploy
+If we want to delivery a new version, we can creating a problem if the time to up the new instance is too big:
+```
+M=getTestValue, response={"status":"UP"}
+M=getTestValue, response={"status":"UP"}
+M=getTestValue, response={"status":"UP"}
+M=getTestValue, response={"status":"UP"}
+M=getTestValue, response={"status":"UP"}
+M=getTestValue, erro=I/O error on GET request for "http://192.168.99.109:30400/actuator/health": Connection refused (Connection refused); nested exception is java.net.ConnectException: Connection refused (Connection refused)
+M=getTestValue, erro=I/O error on GET request for "http://192.168.99.109:30400/actuator/health": Connection refused (Connection refused); nested exception is java.net.ConnectException: Connection refused (Connection refused)
+M=getTestValue, erro=I/O error on GET request for "http://192.168.99.109:30400/actuator/health": Connection refused (Connection refused); nested exception is java.net.ConnectException: Connection refused (Connection refused)
+M=getTestValue, erro=I/O error on GET request for "http://192.168.99.109:30400/actuator/health": Connection refused (Connection refused); nested exception is java.net.ConnectException: Connection refused (Connection refused)
+M=getTestValue, erro=I/O error on GET request for "http://192.168.99.109:30400/actuator/health": Connection refused (Connection refused); nested exception is java.net.ConnectException: Connection refused (Connection refused)
+```
+This problem is about definition of ready. By default, when the container is running, it is ok for the Kubernetes. We need to say that don't use the container until the new is ready to receive new requisitions.
+```
+  readinessProbe:
+    httpGet:
+      path: /actuator/health
+      port: 9009
+    initialDelaySeconds: 10
+    timeoutSeconds: 2
+    periodSeconds: 3
+    failureThreshold: 1
+```
+Now, when we delivery a new version, only kill the old version when the `/actuator/health` endpoint is returning 200.
 
-=> open ports to connect for other host
+```
+$ kubectl get pods
+NAME                           READY   STATUS    RESTARTS   AGE
+preferences-6dcfff7c9f-jcg5s   0/1     Running   0          15s
+preferences-8f7448fb5-26ctv    1/1     Running   0          2m41s
+proxy-77f99474c6-vsbh7         1/1     Running   0          43m
+```
+
+## Open ports
+If we want access to minikube from other host, we need to open ports of the virtual machine:
+```
+$ vboxmanage controlvm "mini-localregistry" natpf1 "preferences,tcp,,30400,,30400"
+```
 
 ## References
 - Official doc: https://kubernetes.io/docs/tasks/tools/install-minikube/

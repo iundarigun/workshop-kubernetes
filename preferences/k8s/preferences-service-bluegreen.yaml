@@ -36,4 +36,17 @@ spec:
         image: local-registry:5000/preferences:0.0.1
         ports:
         - containerPort: 9009
-          
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:mysql://192.168.25.2:3306/preferences?useSSL=false&allowPublicKeyRetrieval=true
+        - name: URL_PROXY
+          value: http://proxy
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 9009
+          initialDelaySeconds: 10
+          timeoutSeconds: 2
+          periodSeconds: 3
+          failureThreshold: 1
+
