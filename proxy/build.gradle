@@ -77,3 +77,11 @@ task patchVersion {
 		props.store(propsFile.newWriter(), null)
 	}
 }
+
+task replaceVersion {
+	doLast{
+		def file = new File('k8s/proxy-jenkins.yaml')
+		def newConfig = file.text.replaceAll("image: (.*)proxy(.*)", 'image: $1proxy:' + projectVersion)
+		file.text = newConfig
+	}
+}

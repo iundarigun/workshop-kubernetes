@@ -398,6 +398,46 @@ users:
     client-key: /var/jenkins_home/.minikube/client.k
 ```
 
+We add to elements in Jenkinsfile. One on `version` step:
+```
+    // Code before is hide
+    // ...
+    stage(name: "Version"){
+        sh "${gradlew} -PtypeVersion=${typeVersion} patchVersion"
+        version=getVersion()
+        sh "${gradlew} replaceVersion -PprojectVersion=${version}"
+    }
+    // Code after is hide
+    // ...
+```
+The other element is a new step after commit:
+```
+    // Code before is hide
+    // ...
+    stage(name: "Deploy"){
+        sh "kubectl apply -f k8s/preferences-jenkins.yaml"
+    }
+    // Code after is hide
+    // ...
+```
+We can put an approval stage, before the deploy:
+```
+    // Code before is hide
+    // ...
+    try{
+        stage(name: "Approval", concurrency: 1)
+        timeout(time: 2, unit: "HOURS") {
+            input(message: "Approve Deployment Preferences branch  ${branch} ?")
+        }
+    }
+    catch (all){
+        throw all
+    }
+    stage(name: "Deploy"){
+    // Code after is hide
+    // ...
+```
+
 ## Custom image
 
 To run a custom image with docker and java 11 we can run the next instruction:

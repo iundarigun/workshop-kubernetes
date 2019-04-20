@@ -1,0 +1,58 @@
+node {
+    def registry = "local-registry:5000/proxy"
+    def registryCredential = "${env.DockerCredentials}"
+    def gitCredential = "${env.GitCredentials}"
+    def gradlew = "./gradlew"
+    def typeVersion = "${env.Version}"
+    def version= ''
+    def branch = "${env.Branch}"
+
+    sh "git config user.email \"jenkins@devcave.com.br\""
+    sh "git config user.name \"Jenkins\""
+
+    stage(name: "Clone"){
+        withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: gitCredential,
+                          usernameVariable: 'USERGIT', passwordVariable: 'PASSGIT']]) {
+            git url: "https://${env.USERGIT}:${env.PASSGIT}@github.com/iundarigun/workshop-kubernetes", credentialsId: gitCredential, branch: branch
+        }
+    }
+    dir("proxy"){
+        stage(name: "Clean"){
+            sh "${gradlew} clean "
+        }
+        stage(name: "Version"){
+            sh "${gradlew} -PtypeVersion=${typeVersion} patchVersion"
+            version=getVersion()
+            sh "${gradlew} replaceVersion -PprojectVersion=${version}"
+        }
+        stage(name: "Compile"){
+            sh "${gradlew} build "
+        }
+        stage(name: "docker"){
+            docker.withRegistry( 'http://local-registry:5000', registryCredential ) {
+                dockername = docker.build(registry + ":${version}", ".")
+                dockername.push()
+            }
+        }
+        stage(name: "Commit changes"){
+            sh "git commit -am \"version ${version}\""
+            sh "git push origin ${branch}"
+        }
+        try{
+            stage(name: "Approval", concurrency: 1)
+            timeout(time: 2, unit: "HOURS") {
+                input(message: "Approve Deployment Proxy branch  ${branch} ?")
+            }
+        }
+        catch (all){
+            throw all
+        }
+        stage(name: "Deploy"){
+            sh "kubectl apply -f k8s/proxy-jenkins.yaml"
+        }
+    }
+}
+def getVersion() {
+  def matcher = readFile("gradle.properties") =~ 'version=(.+)'
+    matcher ? matcher[0][1] : null
+}
