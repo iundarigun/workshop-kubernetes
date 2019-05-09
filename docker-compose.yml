@@ -1,0 +1,12 @@
+proxy:
+  build: proxy/.
+
+preferences:
+  build: preferences/.
+  environment:
+    - SPRING_DATASOURCE_URL=jdbc:mysql://172.28.212.30:3306/preferences?useSSL=false&allowPublicKeyRetrieval=true
+    - URL_PROXY=http://proxy:9000
+  links: 
+    - proxy:proxy
+  ports:
+    - 9009:9009
