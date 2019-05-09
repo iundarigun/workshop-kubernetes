@@ -20,6 +20,7 @@ A imagem é o conceito do que queremos executar e o container é aquela execuç�
 
 ```
 $ docker run -p 2012:2012 iundarigun/helloworld
+$ docker run -d -p 2012:2012 iundarigun/helloworld
 $ docker ps
 ```
 O que aparece no depois do docker ps é o container. A imagem é *iundarigun/helloworld*
