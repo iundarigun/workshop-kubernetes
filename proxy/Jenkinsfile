@@ -1,0 +1,46 @@
+node {
+    def registry = "workshop-registry:5000/proxy"
+    def registryCredential = "${env.DockerCredentials}"
+    def gitCredential = "${env.GitCredentials}"
+    def gradlew = "./gradlew"
+    def version = ""
+    def typeVersion = "${env.versionType}"
+    def branch = "${env.branch}"
+    
+    sh "git config user.email \"workshop@invillia.com\" "
+    sh "git config user.name \"Workshop Invillia\" "
+    
+    stage(name: "Clone"){
+        withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: gitCredential,
+                                  usernameVariable: 'USERGIT', passwordVariable: 'PASSGIT']]) {
+            git url: "https://${env.USERGIT}:${env.PASSGIT}@github.com/iundarigun/workshop-kubernetes", credentialsId: gitCredential, branch: branch
+        }  
+    }
+    dir("proxy"){
+        stage(name: "Clean"){
+            sh "${gradlew} clean "
+        }
+        stage(name: "Version"){
+             sh "${gradlew} -PtypeVersion=${typeVersion} patchVersion"
+            version=getVersion()
+        }
+        stage(name: "Compile"){
+            sh "${gradlew} build "
+        }
+        stage(name: "docker"){
+            docker.withRegistry( 'http://workshop-registry:5000', registryCredential ) {
+                dockername = docker.build(registry + ":${version}", ".")
+                dockername.push()
+            }
+        }
+        stage(name: "Commit changes"){
+            sh "git commit -am \"version ${version}\""
+            sh "git push origin ${branch}"
+        }
+    }
+}
+
+def getVersion() {
+  def matcher = readFile("gradle.properties") =~ 'version=(.+)'
+    matcher ? matcher[0][1] : null
+}
