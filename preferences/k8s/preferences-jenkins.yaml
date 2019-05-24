@@ -33,7 +33,7 @@ spec:
       - name: workshop-registry
       containers:
       - name: preferences
-        image: workshop-registry:5000/preferences:2.2.1
+        image: workshop-registry:5000/preferences:2.3.0
         ports:
         - containerPort: 9009
         env:
